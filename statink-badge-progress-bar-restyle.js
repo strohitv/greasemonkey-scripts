@@ -2,7 +2,7 @@
 // @name     stat.ink badge progress bar restyle
 // @version  1
 // @grant    none
-// @match    https://stat.ink/@strohkoenig/spl3/stats/badge
+// @match    https://stat.ink/@*/spl3/stats/badge
 // @run-at   document-idle
 // ==/UserScript==
 
