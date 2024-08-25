@@ -3,7 +3,7 @@
 // @version  1
 // @grant    none
 // @match    https://stat.ink/@*/spl3/stats/badge
-// @run-at   document-idle
+// @run-at   document-end
 // ==/UserScript==
 
 
@@ -37,7 +37,7 @@ function sort(list) {
 
     idArray = [];
     for (k = 0; k < list.length; k++) {
-        idArray.push({ id: list[k].querySelector("td.auto-tooltip").innerText.replace(",", ""), row: list[k] });
+        idArray.push({ id: list[k].querySelector("td.auto-tooltip").innerText.replace(/\D/g, ""), row: list[k] });
     }
 
     idArray.sort(function (a, b) {
@@ -52,38 +52,48 @@ function sort(list) {
     return rows;
 }
 
-tableBody = document.querySelector("tbody");
-allRows = tableBody.children;
-newOrder = [];
-currentList = [];
+document.addEventListener('DOMContentLoaded', function() {
+  tableBody = document.querySelector("tbody");
+  allRows = tableBody.children;
+  newOrder = [];
+  currentList = [];
 
-for (i = 0; i < allRows.length; i++) {
-    if (allRows[i].querySelector("td.battle-row-group-header")) {
-        currentList = sort(currentList);
+  // iterate all rows of the badge table
+  for (i = 0; i < allRows.length; i++) {
+      if (allRows[i].querySelector("td.battle-row-group-header")) {
+          // current row is a header
+          // -> done with the previous section
+          // -> sort entries and add them to sorted list
+          currentList = sort(currentList);
 
-        for (j = 0; j < currentList.length; j++) {
-            newOrder.push(currentList[j]);
-        }
+          for (j = 0; j < currentList.length; j++) {
+              newOrder.push(currentList[j]);
+          }
 
-        currentList = [];
+          currentList = [];
 
-        newOrder.push(allRows[i]);
-    } else {
-        currentList.push(allRows[i]);
-    }
-}
+          // add the header row to the sorted list afterwards
+          newOrder.push(allRows[i]);
+      } else {
+          // current row is a regular stat -> add to list for later sorting
+          currentList.push(allRows[i]);
+      }
+  }
 
-currentList = sort(currentList);
-for (i = 0; i < currentList.length; i++) {
-    console.log("servus " + i);
-    newOrder.push(currentList[i]);
-}
+  // sort and add last remaining category (salmon boss stats) to sorted list
+  currentList = sort(currentList);
+  for (i = 0; i < currentList.length; i++) {
+      newOrder.push(currentList[i]);
+  }
 
-theParentNode = tableBody.children[0].parentNode
-while (theParentNode.children.length > 0) {
-  theParentNode.removeChild(theParentNode.children[0]);
-}
+  // remove all unsorted entries from table list
+  theParentNode = tableBody.children[0].parentNode
+  while (theParentNode.children.length > 0) {
+    theParentNode.removeChild(theParentNode.children[0]);
+  }
 
-for (i = 0; i < newOrder.length; i++) {
-    theParentNode.appendChild(newOrder[i]);
-}
+  // add all sorted entries to table list
+  for (i = 0; i < newOrder.length; i++) {
+      theParentNode.appendChild(newOrder[i]);
+  }
+});
